@@ -1,0 +1,158 @@
+---
+title: "Digital Public Sphere - Analysis"
+format: html
+---
+```{python}
+pip install textblob
+```
+```{python}
+import pandas as pd
+
+# Read the Excel file
+df = pd.read_excel('E:\\Data Science for Society and Business\\2 Semester\\Digital Public Spheres\\METO.xlsx', sheet_name=1)
+
+
+
+# Inspect the DataFrame
+print(df.head())
+
+
+```
+
+```{python}
+import pandas as pd
+
+
+
+# Create lists to store data
+titles = []
+post_bodies = []
+comments = []
+
+# Initialize variables to keep track of current title, post body, and comment
+current_title = ''
+current_post_body = ''
+current_comment = ''
+
+# Iterate through each row in the DataFrame
+for index, row in df.iterrows():
+    # Check if the row contains a title
+    if 'Title:' in str(row[0]):
+        # If it does, update current title and append previous data to lists
+        if current_title:
+            titles.append(current_title.strip())
+            post_bodies.append(current_post_body.strip())
+            comments.append(current_comment.strip())
+        # Extract title from the row
+        current_title = row[0].split('Title:')[1].strip()
+        current_post_body = ''  # Reset post body
+        current_comment = ''  # Reset comment
+    # Check if the row contains a post body
+    elif 'Post body:' in str(row[0]):
+        # Extract post body from the row
+        current_post_body = row[0].split('Post body:')[1].strip()
+    # Check if the row contains a comment
+    elif 'Comment:' in str(row[0]):
+        # Extract comment from the row
+        current_comment = row[0].split('Comment:')[1].strip()
+
+# Append the last set of data to lists
+titles.append(current_title.strip())
+post_bodies.append(current_post_body.strip())
+comments.append(current_comment.strip())
+
+# Create a new DataFrame from the lists
+new_df = pd.DataFrame({'Title': titles, 'Post Body': post_bodies, 'Comment': comments})
+
+# Print the new DataFrame
+print(new_df.head())
+
+
+```
+
+```{python}
+df.shape
+```
+
+```{python}
+import pandas as pd
+
+
+# Extract information using regular expressions
+split_data = df['All'].str.findall(r'(Title:|Post body:|Comment:)\s?(.*)')
+
+# Create lists to store data
+titles = []
+post_bodies = []
+comments = []
+
+# Iterate through each row in the split data
+for row in split_data:
+    # Initialize variables for title, post body, and comment
+    title = None
+    post_body = None
+    comment = None
+    # Extract information from each tuple in the row
+    for item in row:
+        label, content = item
+        if label == 'Title:':
+            title = content.strip()
+        elif label == 'Post body:':
+            post_body = content.strip()
+        elif label == 'Comment:':
+            comment = content.strip()
+    # Append extracted information to lists
+    titles.append(title)
+    post_bodies.append(post_body)
+    comments.append(comment)
+
+# Create a new DataFrame from the lists
+new_df = pd.DataFrame({'Title': titles, 'Post Body': post_bodies, 'Comment': comments})
+
+# Print the new DataFrame
+print(new_df.head())
+
+```
+
+```{python}
+df.shape
+```
+
+```{python}
+#Sentiment analysis on comment
+from textblob import TextBlob
+import pandas as pd
+
+
+# Filter the DataFrame to include only rows with "Comment" in them
+comment_rows = df[df['All'].str.contains('Comment', case=False)]
+
+# Calculate sentiment scores for the comments
+sentiment_scores = comment_rows['All'].apply(lambda x: TextBlob(str(x)).sentiment.polarity)
+
+# Create a new DataFrame with sentiment scores
+sentiment_df = pd.DataFrame({'Sentiment Score': sentiment_scores})
+
+# Print the new DataFrame
+print(sentiment_df.head())
+```
+
+```{python}
+#Sentiment analysis on Post body
+from textblob import TextBlob
+import pandas as pd
+
+
+# Filter the DataFrame to include only rows with "Comment" in them
+comment_rows = df[df['All'].str.contains('Post body', case=False)]
+
+# Calculate sentiment scores for the comments
+sentiment_scores = comment_rows['All'].apply(lambda x: TextBlob(str(x)).sentiment.polarity)
+
+# Create a new DataFrame with sentiment scores
+sentiment_df = pd.DataFrame({'Sentiment Score': sentiment_scores})
+
+# Print the new DataFrame
+print(sentiment_df.head())
+
+```
